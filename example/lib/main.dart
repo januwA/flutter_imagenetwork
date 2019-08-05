@@ -7,9 +7,6 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      theme: ThemeData(
-        primarySwatch: Colors.green,
-      ),
       home: HomePage(),
     );
   }
@@ -26,45 +23,54 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       body: ListView(
         children: [
-          // access
-          ImageNetwork(
-            'https://s2.ax1x.com/2019/05/22/V9fCKH.jpg',
-            fit: BoxFit.cover,
-            loadingWidget: ImageNetwork.defaultLoadingWidget,
-            loadingBuilder: ImageNetwork.defaultLoadingBuilder,
-            errorBuilder: ImageNetwork.defaultErrorBuilder,
-          ),
-
-          // 404
-          ImageNetwork(
-            'http://example.com/logo.png',
-            loadingWidget: ImageNetwork.defaultLoadingWidget,
-            loadingBuilder: ImageNetwork.defaultLoadingBuilder,
-            errorBuilder: ImageNetwork.defaultErrorBuilder,
-          ),
-
-          // alt
-          ImageNetwork(
-            'http://example.com/logo.png',
-            loadingWidget: ImageNetwork.defaultLoadingWidget,
-            loadingBuilder: ImageNetwork.defaultLoadingBuilder,
-            alt: 'http://example.com/logo.png',
-          ),
-
-          // not image
-          ImageNetwork(
-            'http://www.example.com/',
-            loadingWidget: ImageNetwork.defaultLoadingWidget,
-            loadingBuilder: ImageNetwork.defaultLoadingBuilder,
-            errorBuilder: ImageNetwork.defaultErrorBuilder,
-          ),
-
-          // gif
-          ImageNetwork(
-            'https://i.pinimg.com/originals/95/d0/ee/95d0ee08c718bdcd86a65e14251fa91a.gif',
-            loadingWidget: ImageNetwork.defaultLoadingWidget,
-            loadingBuilder: ImageNetwork.defaultLoadingBuilder,
-            errorBuilder: ImageNetwork.defaultErrorBuilder,
+          // https://i.pinimg.com/originals/2f/60/3a/2f603a9e5948a27b9ad8de08306581db.gif
+          // https://s2.ax1x.com/2019/05/22/V9fCKH.jpg
+          // Image(
+          //   image: NetworkImage(
+          //       'https://i.pinimg.com/originals/2f/60/3a/2f603a9e5948a27b9ad8de08306581db.gif'),
+          //   fit: BoxFit.fill,
+          //   loadingBuilder: (
+          //     BuildContext context,
+          //     Widget child,
+          //     ImageChunkEvent loadingProgress,
+          //   ) {
+          //     if (loadingProgress == null) return child;
+          //     return Center(
+          //       child: CircularProgressIndicator(
+          //         value: loadingProgress.expectedTotalBytes != null
+          //             ? loadingProgress.cumulativeBytesLoaded /
+          //                 loadingProgress.expectedTotalBytes
+          //             : null,
+          //       ),
+          //     );
+          //   },
+          // ),
+          SizedBox(height: 10),
+          MyImage(
+            image: MyNetworkImage(
+              // 'https://i.pinimg.com/originals/2f/60/3a/2f603a9e5948a27b9ad8de08306581db.gif',
+              'http://example.com/logo.png',
+            ),
+            loadingBuilder: (
+              BuildContext context,
+              Widget child,
+              ImageChunkEvent loadingProgress,
+            ) {
+              if (loadingProgress == null) return child;
+              return Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Center(
+                  child: CircularProgressIndicator(
+                    valueColor:
+                        AlwaysStoppedAnimation(Theme.of(context).accentColor),
+                    value: loadingProgress.expectedTotalBytes != null
+                        ? loadingProgress.cumulativeBytesLoaded /
+                            loadingProgress.expectedTotalBytes
+                        : null,
+                  ),
+                ),
+              );
+            },
           ),
         ],
       ),
