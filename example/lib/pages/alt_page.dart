@@ -17,6 +17,7 @@ class _AltPageState extends State<AltPage> {
       body: Center(
         child: AjanuwImage(
           image: AjanuwNetworkImage('http://example.com/logo.png'),
+          // errorBuilder: AjanuwImage.defaultErrorBuilder,
           alt: 'http://example.com/logo.png',
         ),
       ),

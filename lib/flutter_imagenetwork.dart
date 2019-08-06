@@ -99,7 +99,7 @@ class _AjanuwNetworkImage extends ImageProvider<AjanuwNetworkImage>
       codec: _loadAsync(key, chunkEvents),
 
       /// chunkEvents参数是关于图像加载进度的可选通知流,
-      ///  如果提供了此流，则流生成的事件将传递到已注册的[ImageChunkListener]（请参阅[addListener]）。
+      /// 如果提供了此流，则流生成的事件将传递到已注册的[ImageChunkListener]（请参阅[addListener]）。
       chunkEvents: chunkEvents.stream,
       scale: key.scale,
       informationCollector: () {
@@ -134,14 +134,8 @@ class _AjanuwNetworkImage extends ImageProvider<AjanuwNetworkImage>
   ) async {
     try {
       assert(key == this);
-
-      /// key 其实就是 MyNetworkImage
       final Uri resolved = Uri.base.resolve(key.url);
-
-      /// 发送请求
       final HttpClientRequest request = await _httpClient.getUrl(resolved);
-
-      /// add headers
       headers?.forEach((String name, String value) {
         request.headers.add(name, value);
       });
@@ -186,10 +180,11 @@ class _AjanuwNetworkImage extends ImageProvider<AjanuwNetworkImage>
       final Uint8List bytes = await consolidateHttpClientResponseBytes(
         r,
         onBytesReceived: (int cumulative, int total) {
-          chunkEvents.add(ImageChunkEvent(
+          ImageChunkEvent event = ImageChunkEvent(
             cumulativeBytesLoaded: cumulative,
             expectedTotalBytes: total,
-          ));
+          );
+          chunkEvents.add(event);
         },
       );
 
@@ -422,7 +417,12 @@ class _AjanuwImageState extends State<AjanuwImage> with WidgetsBindingObserver {
     super.didUpdateWidget(oldWidget);
     if (_isListeningToStream &&
         (widget.loadingBuilder == null) != (oldWidget.loadingBuilder == null)) {
-      _imageStream.removeListener(_getListener(oldWidget.loadingBuilder));
+      _imageStream.removeListener(
+        _getListener(
+          loadingBuilder: oldWidget.loadingBuilder,
+          errorBuilder: oldWidget.errorBuilder,
+        ),
+      );
       _imageStream.addListener(_getListener());
     }
     if (widget.image != oldWidget.image) _resolveImage();
@@ -467,31 +467,38 @@ class _AjanuwImageState extends State<AjanuwImage> with WidgetsBindingObserver {
     _updateSourceStream(newStream);
   }
 
-  ImageStreamListener _getListener([ImageLoadingBuilder loadingBuilder]) {
+  ImageStreamListener _getListener({
+    ImageLoadingBuilder loadingBuilder,
+    AjanuwImageErrorBuilder errorBuilder,
+  }) {
     loadingBuilder ??= widget.loadingBuilder;
+    errorBuilder ??= widget.errorBuilder;
     // 创建一个新的[ImageStreamListener]
     return ImageStreamListener(
       _handleImageFrame,
       onChunk: loadingBuilder == null ? null : _handleImageChunk,
-
-      // 加载图像时发生错误时收到通知的回调。
-      // 如果在加载过程中发生错误，将调用[onError]而不是[onImage]。
-      onError: (dynamic exception, StackTrace stackTrace) {
-        // 抓取 AjanuwImageNetworkError
-        if (exception is AjanuwImageNetworkError) {
-          /// 让用户知道错误的存在
-          print(exception);
-          if (stackTrace != null) {
-            print(stackTrace);
-          }
-          if (widget.errorBuilder != null || widget.alt != null) {
-            setState(() {
-              _exception = exception;
-            });
-          }
-        }
-      },
+      onError:
+          errorBuilder == null && widget.alt == null ? null : _handleImageError,
     );
+  }
+
+  void _handleImageError(dynamic exception, StackTrace stackTrace) {
+    if (exception is AjanuwImageNetworkError) {
+      /// 让用户知道错误的存在
+      print(exception);
+      if (stackTrace != null) {
+        print(stackTrace);
+      }
+      if (widget.errorBuilder != null || widget.alt != null) {
+        setState(() {
+          _exception = exception;
+        });
+      }
+    }
+
+    if (stackTrace != null) {
+      print(stackTrace);
+    }
   }
 
   void _handleImageChunk(ImageChunkEvent event) {
@@ -587,7 +594,6 @@ class _AjanuwImageState extends State<AjanuwImage> with WidgetsBindingObserver {
       invertColors: _invertColors,
       filterQuality: widget.filterQuality,
     );
-
     if (!widget.excludeFromSemantics) {
       result = Semantics(
         container: widget.semanticLabel != null,
