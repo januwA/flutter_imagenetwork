@@ -185,8 +185,6 @@ class _AjanuwNetworkImage extends ImageProvider<AjanuwNetworkImage>
       /// 把response转成bytes
       final Uint8List bytes = await consolidateHttpClientResponseBytes(
         r,
-
-        /// progress
         onBytesReceived: (int cumulative, int total) {
           chunkEvents.add(ImageChunkEvent(
             cumulativeBytesLoaded: cumulative,
@@ -471,49 +469,46 @@ class _AjanuwImageState extends State<AjanuwImage> with WidgetsBindingObserver {
 
   ImageStreamListener _getListener([ImageLoadingBuilder loadingBuilder]) {
     loadingBuilder ??= widget.loadingBuilder;
-
-    /// 创建一个新的[ImageStreamListener]
+    // 创建一个新的[ImageStreamListener]
     return ImageStreamListener(
-      (ImageInfo imageInfo, bool synchronousCall) {
-        /// 在这里图像加载完成了
-        /// 进度=null
-        /// error=null
-        setState(() {
-          _imageInfo = imageInfo;
-          _exception = null;
-          _loadingProgress = null;
-          _frameNumber = _frameNumber == null ? 0 : _frameNumber + 1;
-          _wasSynchronouslyLoaded |= synchronousCall;
-        });
-      },
-
-      /// loadingBuilder
-      onChunk: loadingBuilder == null
-          ? null
-          : (ImageChunkEvent event) {
-              /// 加载图片的进度，在这里被设置
-              setState(() {
-                _loadingProgress = event;
-              });
-            },
+      _handleImageFrame,
+      onChunk: loadingBuilder == null ? null : _handleImageChunk,
 
       // 加载图像时发生错误时收到通知的回调。
       // 如果在加载过程中发生错误，将调用[onError]而不是[onImage]。
       onError: (dynamic exception, StackTrace stackTrace) {
-        assert(exception is AjanuwImageNetworkError);
-
-        /// 让用户知道错误的存在
-        print(exception);
-        if (stackTrace != null) {
-          print(stackTrace);
-        }
-        if (widget.errorBuilder != null) {
-          setState(() {
-            _exception = exception;
-          });
+        // 抓取 AjanuwImageNetworkError
+        if (exception is AjanuwImageNetworkError) {
+          /// 让用户知道错误的存在
+          print(exception);
+          if (stackTrace != null) {
+            print(stackTrace);
+          }
+          if (widget.errorBuilder != null) {
+            setState(() {
+              _exception = exception;
+            });
+          }
         }
       },
     );
+  }
+
+  void _handleImageChunk(ImageChunkEvent event) {
+    assert(widget.loadingBuilder != null);
+    setState(() {
+      _loadingProgress = event;
+    });
+  }
+
+  void _handleImageFrame(ImageInfo imageInfo, bool synchronousCall) {
+    setState(() {
+      _imageInfo = imageInfo;
+      _exception = null;
+      _loadingProgress = null;
+      _frameNumber = _frameNumber == null ? 0 : _frameNumber + 1;
+      _wasSynchronouslyLoaded |= synchronousCall;
+    });
   }
 
   // 将_imageStream更新为newStream，并移动流侦听器
