@@ -1,5 +1,10 @@
+import 'package:example/pages/alt_page.dart';
+import 'package:example/pages/list_images_page.dart';
+import 'package:example/pages/not_found_image_page.dart';
+import 'package:example/pages/not_image_page.dart';
+import 'package:example/pages/sliver_list_images_page.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_imagenetwork/flutter_imagenetwork.dart';
+import './pages/one_image_page.dart';
 
 void main() => runApp(MyApp());
 
@@ -21,40 +26,46 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: ListView(
-        children: [
-          AjanuwImage(
-            image: AjanuwNetworkImage(
-                'https://i.pinimg.com/originals/2f/60/3a/2f603a9e5948a27b9ad8de08306581db.gif'),
-            loadingWidget: AjanuwImage.defaultLoadingWidget,
-            loadingBuilder: AjanuwImage.defaultLoadingBuilder,
-            errorBuilder: AjanuwImage.defaultErrorBuilder,
+      body: Center(
+        child: IntrinsicWidth(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              RaisedButton(
+                child: Text('one image'),
+                onPressed: () => _goPage(OneImagePage()),
+              ),
+              RaisedButton(
+                child: Text('404 image'),
+                onPressed: () => _goPage(NotFoundImagePage()),
+              ),
+              RaisedButton(
+                child: Text('not image'),
+                onPressed: () => _goPage(NotImagePage()),
+              ),
+              RaisedButton(
+                child: Text('list image'),
+                onPressed: () => _goPage(ListImagesPage()),
+              ),
+              RaisedButton(
+                child: Text('sliver list image'),
+                onPressed: () => _goPage(SliverListImagesPage()),
+              ),
+              RaisedButton(
+                child: Text('alt'),
+                onPressed: () => _goPage(AltPage()),
+              ),
+            ],
           ),
-
-          AjanuwImage(
-            image:
-                AjanuwNetworkImage('https://s2.ax1x.com/2019/05/22/V9fCKH.jpg'),
-            fit: BoxFit.cover,
-          ),
-
-          AjanuwImage(
-            image:
-                AjanuwNetworkImage('https://s2.ax1x.com/2019/05/22/V9fCKH.jpg'),
-            fit: BoxFit.cover,
-            loadingWidget: AjanuwImage.defaultLoadingWidget,
-            loadingBuilder: AjanuwImage.defaultLoadingBuilder,
-            errorBuilder: AjanuwImage.defaultErrorBuilder,
-          ),
-
-          /// 404
-          AjanuwImage(
-            image: AjanuwNetworkImage('http://example.com/logo.png'),
-            loadingWidget: AjanuwImage.defaultLoadingWidget,
-            loadingBuilder: AjanuwImage.defaultLoadingBuilder,
-            errorBuilder: AjanuwImage.defaultErrorBuilder,
-          ),
-        ],
+        ),
       ),
+    );
+  }
+
+  void _goPage(Widget route) {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => route),
     );
   }
 }

@@ -484,7 +484,7 @@ class _AjanuwImageState extends State<AjanuwImage> with WidgetsBindingObserver {
           if (stackTrace != null) {
             print(stackTrace);
           }
-          if (widget.errorBuilder != null) {
+          if (widget.errorBuilder != null || widget.alt != null) {
             setState(() {
               _exception = exception;
             });
