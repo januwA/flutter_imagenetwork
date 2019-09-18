@@ -24,7 +24,7 @@ class _NotFoundImagePageState extends State<NotFoundImagePage> {
               children: <Widget>[
                 Text('${error.message}: ${error.uri}'),
                 Text('statusCode: ${error.statusCode}'),
-                Text('contentType: ${error.headers.contentType}'),
+                // Text('contentType: ${error.headers['contentType']}'),
               ],
             );
           },

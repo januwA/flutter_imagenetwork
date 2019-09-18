@@ -1,3 +1,7 @@
+## [0.3.0] - 2019-9-18
+
+* Adapt to Fluter WEB
+
 ## [0.2.2] - 2019-8-6
 
 * 修复loadingBuilder错误

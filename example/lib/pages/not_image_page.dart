@@ -24,7 +24,7 @@ class _NotImagePageState extends State<NotImagePage> {
               children: <Widget>[
                 Text('${error.message}: ${error.uri}'),
                 Text('statusCode: ${error.statusCode}'),
-                Text('contentType: ${error.headers.contentType}'),
+                // Text('contentType: ${error.headers['contentType']}'),
               ],
             );
           },
