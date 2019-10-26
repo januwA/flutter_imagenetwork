@@ -22,5 +22,5 @@ abstract class AjanuwNetworkImage extends ImageProvider<AjanuwNetworkImage> {
   Map<String, String> get headers;
 
   @override
-  ImageStreamCompleter load(AjanuwNetworkImage key);
+  ImageStreamCompleter load(AjanuwNetworkImage key, DecoderCallback decode);
 }

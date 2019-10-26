@@ -6,6 +6,7 @@ import 'package:flutter/painting.dart';
 
 import 'image_provider.dart' as image_provider;
 
+/// 网络上的网络映像不支持解码到指定大小
 class AjanuwNetworkImage
     extends ImageProvider<image_provider.AjanuwNetworkImage>
     implements image_provider.AjanuwNetworkImage {
@@ -31,9 +32,9 @@ class AjanuwNetworkImage
   }
 
   @override
-  ImageStreamCompleter load(image_provider.AjanuwNetworkImage key) {
+  ImageStreamCompleter load(image_provider.AjanuwNetworkImage key, DecoderCallback decode) {
     return MultiFrameImageStreamCompleter(
-      codec: _loadAsync(key),
+      codec: _loadAsync(key, decode),
       scale: key.scale,
       informationCollector: () {
         return <DiagnosticsNode>[
@@ -44,7 +45,7 @@ class AjanuwNetworkImage
     );
   }
 
-  Future<ui.Codec> _loadAsync(AjanuwNetworkImage key) async {
+  Future<ui.Codec> _loadAsync(AjanuwNetworkImage key, DecoderCallback decode) async {
     assert(key == this);
 
     final Uri resolved = Uri.base.resolve(key.url);

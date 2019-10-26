@@ -1,0 +1,1 @@
+const String oneImageUrl = 'https://i.loli.net/2019/09/29/4fTQZBrJKdstCNW.jpg';

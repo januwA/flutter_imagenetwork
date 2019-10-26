@@ -37,7 +37,8 @@ class AjanuwNetworkImage
   }
 
   @override
-  ImageStreamCompleter load(image_provider.AjanuwNetworkImage key) {
+  ImageStreamCompleter load(
+      image_provider.AjanuwNetworkImage key, DecoderCallback decode) {
     // 将此控制器的所有权移交给[_loadAsync]; 就是它
     // 方法负责在图像时关闭控制器的流
     // 已加载或抛出错误。
@@ -46,7 +47,7 @@ class AjanuwNetworkImage
 
     /// 创建图像流完成者。
     return MultiFrameImageStreamCompleter(
-      codec: _loadAsync(key, chunkEvents),
+      codec: _loadAsync(key, chunkEvents, decode),
 
       /// chunkEvents参数是关于图像加载进度的可选通知流,
       /// 如果提供了此流，则流生成的事件将传递到已注册的[ImageChunkListener]（请参阅[addListener]）。
@@ -81,6 +82,7 @@ class AjanuwNetworkImage
   Future<ui.Codec> _loadAsync(
     AjanuwNetworkImage key,
     StreamController<ImageChunkEvent> chunkEvents,
+    DecoderCallback decode,
   ) async {
     try {
       assert(key == this);
@@ -129,11 +131,10 @@ class AjanuwNetworkImage
       final Uint8List bytes = await consolidateHttpClientResponseBytes(
         r,
         onBytesReceived: (int cumulative, int total) {
-          ImageChunkEvent event = ImageChunkEvent(
+          chunkEvents.add(ImageChunkEvent(
             cumulativeBytesLoaded: cumulative,
             expectedTotalBytes: total,
-          );
-          chunkEvents.add(event);
+          ));
         },
       );
 
@@ -152,7 +153,7 @@ class AjanuwNetworkImage
       }
 
       /// 使用[ImageCache]中的[decodingCacheRatioCap]调用[dart：ui]
-      return PaintingBinding.instance.instantiateImageCodec(bytes);
+      return decode(bytes);
     } finally {
       chunkEvents.close();
     }

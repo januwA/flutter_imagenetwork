@@ -1,8 +1,6 @@
 import 'package:example/pages/alt_page.dart';
-import 'package:example/pages/list_images_page.dart';
 import 'package:example/pages/not_found_image_page.dart';
 import 'package:example/pages/not_image_page.dart';
-import 'package:example/pages/sliver_list_images_page.dart';
 import 'package:flutter/material.dart';
 import './pages/one_image_page.dart';
 
@@ -43,14 +41,6 @@ class _HomePageState extends State<HomePage> {
               RaisedButton(
                 child: Text('not image'),
                 onPressed: () => _goPage(NotImagePage()),
-              ),
-              RaisedButton(
-                child: Text('list image'),
-                onPressed: () => _goPage(ListImagesPage()),
-              ),
-              RaisedButton(
-                child: Text('sliver list image'),
-                onPressed: () => _goPage(SliverListImagesPage()),
               ),
               RaisedButton(
                 child: Text('alt'),

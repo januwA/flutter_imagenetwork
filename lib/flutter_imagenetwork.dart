@@ -120,6 +120,23 @@ class AjanuwImage extends StatefulWidget {
     );
   };
 
+  static final ImageFrameBuilder defaultFrameBuilder = (
+    BuildContext context,
+    Widget child,
+    int frame,
+    bool wasSynchronouslyLoaded,
+  ) {
+    if (wasSynchronouslyLoaded) {
+      return child;
+    }
+    return AnimatedOpacity(
+      child: child,
+      opacity: frame == null ? 0 : 1,
+      duration: const Duration(seconds: 1),
+      curve: Curves.easeOut,
+    );
+  };
+
   /// default loadingWidget
   static final Widget defaultLoadingWidget = Padding(
     padding: const EdgeInsets.all(8.0),
