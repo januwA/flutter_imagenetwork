@@ -16,10 +16,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_imagenetwork/flutter_imagenetwork.dart'
 
 AjanuwImage(
-  image: AjanuwNetworkImage('https://s2.ax1x.com/2019/05/22/V9fCKH.jpg'),
+  image: AjanuwNetworkImage('https://i.loli.net/2019/10/01/CVBu2tNMqzOfXHr.png'),
   fit: BoxFit.cover,
   loadingWidget: AjanuwImage.defaultLoadingWidget,
   loadingBuilder: AjanuwImage.defaultLoadingBuilder,
   errorBuilder: AjanuwImage.defaultErrorBuilder,
-),
+)
+
+
+AjanuwImage(
+  image: AjanuwNetworkImage('https://i.loli.net/2019/10/01/CVBu2tNMqzOfXHr.png'),
+  frameBuilder: AjanuwImage.defaultFrameBuilder,
+)
 ```

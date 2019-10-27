@@ -20,9 +20,7 @@ class _OneImagePageState extends State<OneImagePage> {
       body: Center(
         child: AjanuwImage(
           image: AjanuwNetworkImage(oneImageUrl),
-          loadingWidget: AjanuwImage.defaultLoadingWidget,
-          loadingBuilder: AjanuwImage.defaultLoadingBuilder,
-          // frameBuilder: AjanuwImage.defaultFrameBuilder,
+          frameBuilder: AjanuwImage.defaultFrameBuilder,
         ),
       ),
     );
