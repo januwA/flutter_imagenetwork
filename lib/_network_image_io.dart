@@ -166,13 +166,15 @@ class AjanuwNetworkImage
   @override
   bool operator ==(dynamic other) {
     if (other.runtimeType != runtimeType) return false;
-    final AjanuwNetworkImage typedOther = other;
-    return url == typedOther.url && scale == typedOther.scale;
+    return other is AjanuwNetworkImage &&
+        other.url == url &&
+        other.scale == scale;
   }
 
   @override
   int get hashCode => ui.hashValues(url, scale);
 
   @override
-  String toString() => '$runtimeType("$url", scale: $scale)';
+  String toString() =>
+      '${objectRuntimeType(this, 'AjanuwNetworkImage')}("$url", scale: $scale)';
 }

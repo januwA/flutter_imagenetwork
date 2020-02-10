@@ -1,7 +1,6 @@
 name: flutter_imagenetwork
 description: A widget that loads a network image in flutter can set loading, progress, error, alt.
-version: 0.3.2
-author: Ajanuw <ajanuw1995@gmail.com>
+version: 0.3.3
 homepage: https://github.com/januwA/flutter_package_imagenetwork.git
 
 environment:

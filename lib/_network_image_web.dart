@@ -32,26 +32,28 @@ class AjanuwNetworkImage
   }
 
   @override
-  ImageStreamCompleter load(image_provider.AjanuwNetworkImage key, DecoderCallback decode) {
+  ImageStreamCompleter load(
+      image_provider.AjanuwNetworkImage key, DecoderCallback decode) {
     return MultiFrameImageStreamCompleter(
       codec: _loadAsync(key, decode),
       scale: key.scale,
       informationCollector: () {
         return <DiagnosticsNode>[
           DiagnosticsProperty<ImageProvider>('Image provider', this),
-          DiagnosticsProperty<AjanuwNetworkImage>('Image key', key),
+          DiagnosticsProperty<AjanuwNetworkImage>(
+              'Image key', key as AjanuwNetworkImage),
         ];
       },
     );
   }
 
-  Future<ui.Codec> _loadAsync(AjanuwNetworkImage key, DecoderCallback decode) async {
+  Future<ui.Codec> _loadAsync(AjanuwNetworkImage key, DecoderCallback decode) {
     assert(key == this);
 
     final Uri resolved = Uri.base.resolve(key.url);
     // This API only exists in the web engine implementation and is not
     // contained in the analyzer summary for Flutter.
-    return ui.webOnlyInstantiateImageCodecFromUrl(resolved); // ignore: undefined_function
+    return ui.webOnlyInstantiateImageCodecFromUrl(resolved) as Future<ui.Codec>; // ignore: undefined_function
   }
 
   @override
@@ -59,13 +61,15 @@ class AjanuwNetworkImage
     if (other.runtimeType != runtimeType) {
       return false;
     }
-    final AjanuwNetworkImage typedOther = other;
-    return url == typedOther.url && scale == typedOther.scale;
+    return other is AjanuwNetworkImage &&
+        other.url == url &&
+        other.scale == scale;
   }
 
   @override
   int get hashCode => ui.hashValues(url, scale);
 
   @override
-  String toString() => '$runtimeType("$url", scale: $scale)';
+  String toString() =>
+      '${objectRuntimeType(this, 'NetworkImage')}("$url", scale: $scale)';
 }

@@ -16,7 +16,7 @@ class AjanuwImageNetworkError {
   final AjanuwImageNetworkErrorType type;
   final Uri uri;
 
-  AjanuwImageNetworkError({
+  const AjanuwImageNetworkError({
     // this.headers,
     this.statusCode,
     this.message,
@@ -96,9 +96,6 @@ class AjanuwImage extends StatefulWidget {
   /// This text will be displayed if the image is not loaded correctly
   final String alt;
 
-  @override
-  _AjanuwImageState createState() => _AjanuwImageState();
-
   /// default loadingBuilder
   static final ImageLoadingBuilder defaultLoadingBuilder = (
     BuildContext context,
@@ -168,13 +165,22 @@ class AjanuwImage extends StatefulWidget {
   };
 
   @override
+  _AjanuwImageState createState() => _AjanuwImageState();
+
+  @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
     properties.add(DiagnosticsProperty<ImageProvider>('image', image));
     properties.add(DiagnosticsProperty<Function>('frameBuilder', frameBuilder));
     properties
         .add(DiagnosticsProperty<Function>('loadingBuilder', loadingBuilder));
+
+    /// ===== add props
     properties.add(DiagnosticsProperty<Function>('errorBuilder', errorBuilder));
+    properties.add(DiagnosticsProperty<Widget>('loadingWidget', loadingWidget));
+    properties.add(StringProperty('alt', alt, defaultValue: null));
+
+    /// =====
     properties.add(DoubleProperty('width', width, defaultValue: null));
     properties.add(DoubleProperty('height', height, defaultValue: null));
     properties.add(ColorProperty('color', color, defaultValue: null));
@@ -206,12 +212,16 @@ class _AjanuwImageState extends State<AjanuwImage> with WidgetsBindingObserver {
   bool _invertColors;
   int _frameNumber;
   bool _wasSynchronouslyLoaded;
+  DisposableBuildContext<State<AjanuwImage>> _scrollAwareContext;
+
+  /// add
   AjanuwImageNetworkError _exception;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _scrollAwareContext = DisposableBuildContext<State<AjanuwImage>>(this);
   }
 
   @override
@@ -219,6 +229,7 @@ class _AjanuwImageState extends State<AjanuwImage> with WidgetsBindingObserver {
     assert(_imageStream != null);
     WidgetsBinding.instance.removeObserver(this);
     _stopListeningToStream();
+    _scrollAwareContext.dispose();
     super.dispose();
   }
 
@@ -276,18 +287,17 @@ class _AjanuwImageState extends State<AjanuwImage> with WidgetsBindingObserver {
 
   /// 解决图片
   void _resolveImage() {
-    /// image.resolve
-    /// 使用给定配置解析此图像提供程序，返回[ImageStream]。
-    /// 这是[ImageProvider]类层次结构的公共入口点。
-    /// 子类应该实现此方法使用的[obtainKey]和[load]。
-    final ImageStream newStream = widget.image.resolve(
-      createLocalImageConfiguration(
-        context,
-        size: widget.width != null && widget.height != null
-            ? Size(widget.width, widget.height)
-            : null,
-      ),
+    final ScrollAwareImageProvider provider = ScrollAwareImageProvider<dynamic>(
+      context: _scrollAwareContext,
+      imageProvider: widget.image,
     );
+    final ImageStream newStream =
+        provider.resolve(createLocalImageConfiguration(
+      context,
+      size: widget.width != null && widget.height != null
+          ? Size(widget.width, widget.height)
+          : null,
+    ));
     assert(newStream != null);
     _updateSourceStream(newStream);
   }
@@ -326,13 +336,6 @@ class _AjanuwImageState extends State<AjanuwImage> with WidgetsBindingObserver {
     }
   }
 
-  void _handleImageChunk(ImageChunkEvent event) {
-    assert(widget.loadingBuilder != null);
-    setState(() {
-      _loadingProgress = event;
-    });
-  }
-
   void _handleImageFrame(ImageInfo imageInfo, bool synchronousCall) {
     setState(() {
       _imageInfo = imageInfo;
@@ -340,6 +343,13 @@ class _AjanuwImageState extends State<AjanuwImage> with WidgetsBindingObserver {
       _loadingProgress = null;
       _frameNumber = _frameNumber == null ? 0 : _frameNumber + 1;
       _wasSynchronouslyLoaded |= synchronousCall;
+    });
+  }
+
+  void _handleImageChunk(ImageChunkEvent event) {
+    assert(widget.loadingBuilder != null);
+    setState(() {
+      _loadingProgress = event;
     });
   }
 
