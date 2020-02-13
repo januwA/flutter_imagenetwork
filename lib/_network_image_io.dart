@@ -19,6 +19,7 @@ class AjanuwNetworkImage
     this.url, {
     this.scale = 1.0,
     this.headers,
+    this.timeout,
   })  : assert(url != null),
         assert(scale != null);
 
@@ -30,6 +31,8 @@ class AjanuwNetworkImage
 
   @override
   final Map<String, String> headers;
+
+  final Duration timeout;
 
   @override
   Future<AjanuwNetworkImage> obtainKey(ImageConfiguration configuration) {
@@ -84,15 +87,20 @@ class AjanuwNetworkImage
     StreamController<ImageChunkEvent> chunkEvents,
     DecoderCallback decode,
   ) async {
+    assert(key == this);
+    final Uri resolved = Uri.base.resolve(key.url);
     try {
-      assert(key == this);
-      final Uri resolved = Uri.base.resolve(key.url);
+      // _httpClient.connectionTimeout = const Duration(seconds: 5);
+      if (key.timeout != null) {
+        Future.delayed(key.timeout).then((_) => _httpClient.close());
+      }
+
       final HttpClientRequest request = await _httpClient.getUrl(resolved);
       headers?.forEach((String name, String value) {
         request.headers.add(name, value);
       });
       final HttpClientResponse r =
-          await request.close(); /*.timeout(Duration(seconds: 1));*/
+          await request.close(); /*(这不会工作) .timeout(timeout); */
 
       /// 是否获取成功
       if (r.statusCode != HttpStatus.ok) {
@@ -118,7 +126,6 @@ class AjanuwNetworkImage
       if (!_isImage(r.headers.contentType.toString())) {
         return Future.error(
           AjanuwImageNetworkError(
-            // headers: r.headers,
             statusCode: r.statusCode,
             message: 'Not Image',
             uri: resolved,
@@ -142,7 +149,6 @@ class AjanuwNetworkImage
       if (bytes.lengthInBytes == 0) {
         return Future.error(
           AjanuwImageNetworkError(
-            // headers: r.headers,
             statusCode: r.statusCode,
             message: 'NetworkImage is an empty file',
             uri: resolved,
@@ -154,8 +160,50 @@ class AjanuwNetworkImage
 
       /// 使用[ImageCache]中的[decodingCacheRatioCap]调用[dart：ui]
       return decode(bytes);
-    } finally {
-      chunkEvents.close();
+    } on HandshakeException catch (er) {
+      // 建立安全网络连接的握手阶段中发生的异常。
+      print(er); // 让开发者知道错误的存在
+      return Future.error(
+        AjanuwImageNetworkError(
+          statusCode: 0,
+          message: er.message,
+          uri: resolved,
+          type: AjanuwImageNetworkErrorType.HandshakeException,
+        ),
+      );
+    } on HttpException catch (er) {
+      // 在收到完整的标头之前关闭连接
+      print(er); // 让开发者知道错误的存在
+      return Future.error(
+        AjanuwImageNetworkError(
+          statusCode: 0,
+          message: er.message,
+          uri: resolved,
+          type: AjanuwImageNetworkErrorType.HttpException,
+        ),
+      );
+    } on SocketException catch (er) {
+      // 操作系统错误：连接被拒绝
+      print(er);
+      return Future.error(
+        AjanuwImageNetworkError(
+          statusCode: 0,
+          message: er.message,
+          uri: resolved,
+          type: AjanuwImageNetworkErrorType.SocketException,
+        ),
+      );
+    } on TimeoutException catch (er) {
+      // 网络超时
+      print(er);
+      return Future.error(
+        AjanuwImageNetworkError(
+          statusCode: 0,
+          message: er.message,
+          uri: resolved,
+          type: AjanuwImageNetworkErrorType.TimeoutException,
+        ),
+      );
     }
   }
 

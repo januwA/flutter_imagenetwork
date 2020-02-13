@@ -1,3 +1,12 @@
+## [0.4.0] - 2020-2-10
+
+- 增加更多的错误抓取
+  - HandshakeException
+  - HttpException
+  - SocketException
+  - TimeoutException
+- 增加timeout参数
+
 ## [0.3.3] - 2020-2-10
 
 * 日常维护，web上会出现问题,暂无解决方法

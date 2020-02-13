@@ -18,9 +18,20 @@ class _OneImagePageState extends State<OneImagePage> {
         title: Text(OneImagePage.routeName),
       ),
       body: Center(
+        // child: AjanuwImage(
+        //   image: AjanuwNetworkImage(oneImageUrl),
+        //   frameBuilder: AjanuwImage.defaultFrameBuilder,
+        // ),
+
         child: AjanuwImage(
-          image: AjanuwNetworkImage(oneImageUrl),
-          frameBuilder: AjanuwImage.defaultFrameBuilder,
+          image: AjanuwNetworkImage(
+            oneImageUrl,
+            timeout: const Duration(seconds: 5),
+          ),
+          fit: BoxFit.cover,
+          loadingWidget: AjanuwImage.defaultLoadingWidget,
+          loadingBuilder: AjanuwImage.defaultLoadingBuilder,
+          errorBuilder: AjanuwImage.defaultErrorBuilder,
         ),
       ),
     );

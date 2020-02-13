@@ -14,6 +14,7 @@ class AjanuwNetworkImage
     this.url, {
     this.scale = 1.0,
     this.headers,
+    this.timeout,
   })  : assert(url != null),
         assert(scale != null);
 
@@ -25,6 +26,7 @@ class AjanuwNetworkImage
 
   @override
   final Map<String, String> headers;
+  final Duration timeout;
 
   @override
   Future<AjanuwNetworkImage> obtainKey(ImageConfiguration configuration) {

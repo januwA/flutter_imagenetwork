@@ -6,18 +6,23 @@ import 'package:flutter/widgets.dart';
 export 'image_provider.dart';
 
 /// error Status
-enum AjanuwImageNetworkErrorType { NotImage, NotFound, EmptyFile }
+enum AjanuwImageNetworkErrorType {
+  NotImage,
+  NotFound,
+  EmptyFile,
+  HandshakeException,
+  HttpException,
+  SocketException,
+  TimeoutException
+}
 
-/// error object
 class AjanuwImageNetworkError {
-  // final Map<String, String> headers;
   final int statusCode;
   final dynamic message;
   final AjanuwImageNetworkErrorType type;
   final Uri uri;
 
   const AjanuwImageNetworkError({
-    // this.headers,
     this.statusCode,
     this.message,
     this.type,
@@ -26,7 +31,7 @@ class AjanuwImageNetworkError {
 
   @override
   String toString() =>
-      'HTTP request failed, statusCode: $statusCode, $uri, $type';
+      'HTTP request failed, statusCode: $statusCode, $uri, $type, $message';
 }
 
 /// error builder
@@ -146,20 +151,17 @@ class AjanuwImage extends StatefulWidget {
     Color color = Theme.of(context).accentColor;
     return Padding(
       padding: const EdgeInsets.all(8.0),
-      child: Center(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Icon(
-              Icons.broken_image,
-              color: color,
-            ),
-            Text(
-              error.message,
-              style: TextStyle(color: color),
-            ),
-          ],
-        ),
+      child: Wrap(
+        children: <Widget>[
+          Icon(
+            Icons.broken_image,
+            color: color,
+          ),
+          Text(
+            error.message,
+            style: TextStyle(color: color),
+          ),
+        ],
       ),
     );
   };

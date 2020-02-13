@@ -11,10 +11,12 @@ abstract class AjanuwNetworkImage extends ImageProvider<AjanuwNetworkImage> {
     String url, {
     double scale,
     Map<String, String> headers,
+    Duration timeout,
   }) = network_image.AjanuwNetworkImage;
 
   String get url;
   double get scale;
+  Duration get timeout;
 
   /// 将与[HttpClient.get]一起使用以从网络获取图像的HTTP标头。
   ///
