@@ -214,7 +214,7 @@ class _AjanuwImageState extends State<AjanuwImage> with WidgetsBindingObserver {
   bool _invertColors;
   int _frameNumber;
   bool _wasSynchronouslyLoaded;
-  DisposableBuildContext<State<AjanuwImage>> _scrollAwareContext;
+  // DisposableBuildContext<State<AjanuwImage>> _scrollAwareContext;
 
   /// add
   AjanuwImageNetworkError _exception;
@@ -223,7 +223,7 @@ class _AjanuwImageState extends State<AjanuwImage> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _scrollAwareContext = DisposableBuildContext<State<AjanuwImage>>(this);
+    // _scrollAwareContext = DisposableBuildContext<State<AjanuwImage>>(this);
   }
 
   @override
@@ -231,7 +231,7 @@ class _AjanuwImageState extends State<AjanuwImage> with WidgetsBindingObserver {
     assert(_imageStream != null);
     WidgetsBinding.instance.removeObserver(this);
     _stopListeningToStream();
-    _scrollAwareContext.dispose();
+    // _scrollAwareContext.dispose();
     super.dispose();
   }
 
@@ -289,12 +289,19 @@ class _AjanuwImageState extends State<AjanuwImage> with WidgetsBindingObserver {
 
   /// 解决图片
   void _resolveImage() {
-    final ScrollAwareImageProvider provider = ScrollAwareImageProvider<dynamic>(
-      context: _scrollAwareContext,
-      imageProvider: widget.image,
-    );
+    // final ScrollAwareImageProvider provider = ScrollAwareImageProvider<dynamic>(
+    //   context: _scrollAwareContext,
+    //   imageProvider: widget.image,
+    // );
+    // final ImageStream newStream =
+    //     provider.resolve(createLocalImageConfiguration(
+    //   context,
+    //   size: widget.width != null && widget.height != null
+    //       ? Size(widget.width, widget.height)
+    //       : null,
+    // ));
     final ImageStream newStream =
-        provider.resolve(createLocalImageConfiguration(
+        widget.image.resolve(createLocalImageConfiguration(
       context,
       size: widget.width != null && widget.height != null
           ? Size(widget.width, widget.height)

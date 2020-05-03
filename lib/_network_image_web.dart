@@ -72,6 +72,5 @@ class AjanuwNetworkImage
   int get hashCode => ui.hashValues(url, scale);
 
   @override
-  String toString() =>
-      '${objectRuntimeType(this, 'NetworkImage')}("$url", scale: $scale)';
+  String toString() => '$runtimeType("$url", scale: $scale)';
 }

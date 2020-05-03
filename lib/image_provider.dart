@@ -3,10 +3,11 @@ import 'package:flutter/widgets.dart';
 import '_network_image_io.dart' if (dart.library.html) '_network_image_web.dart'
     as network_image;
 
+/// 对应Flutter的NetworkImage
 abstract class AjanuwNetworkImage extends ImageProvider<AjanuwNetworkImage> {
-  ///创建一个在给定URL处获取图像的对象。
+  /// 创建一个在给定URL处获取图像的对象。
   ///
-  ///参数[url]和[scale]不能为空。
+  /// 参数[url]和[scale]不能为空。
   const factory AjanuwNetworkImage(
     String url, {
     double scale,
