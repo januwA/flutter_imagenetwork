@@ -106,10 +106,13 @@ class AjanuwNetworkImage
       final HttpClientResponse r =
           await request.close(); /*(这不会工作) .timeout(timeout); */
 
+      //==================================================================
+      // 下面开始捕获错误
+      //==================================================================
+
       /// 是否获取成功，默认返回的状态码为2xx或者3xx表示成功
-      if (validateStatus == null || !validateStatus(r.statusCode)) {
-        /// 也能收到错误
-        /// 程序不会进入调试状态
+      var validate = validateStatus != null && validateStatus(r.statusCode);
+      if (!validate) {
         return Future.error(
           AjanuwImageNetworkError(
             statusCode: r.statusCode,
@@ -126,6 +129,7 @@ class AjanuwNetworkImage
         //   uri: resolved,
         // );
       }
+
       // 处理获取非image资源错误
       if (!_isImage(r.headers.contentType.toString())) {
         return Future.error(
@@ -166,7 +170,6 @@ class AjanuwNetworkImage
       return decode(bytes);
     } on HandshakeException catch (er) {
       // 建立安全网络连接的握手阶段中发生的异常。
-      print(er); // 让开发者知道错误的存在
       return Future.error(
         AjanuwImageNetworkError(
           statusCode: 0,
@@ -176,8 +179,8 @@ class AjanuwNetworkImage
         ),
       );
     } on HttpException catch (er) {
+      print(er);
       // 在收到完整的标头之前关闭连接
-      print(er); // 让开发者知道错误的存在
       return Future.error(
         AjanuwImageNetworkError(
           statusCode: 0,
@@ -188,7 +191,6 @@ class AjanuwNetworkImage
       );
     } on SocketException catch (er) {
       // 操作系统错误：连接被拒绝
-      print(er);
       return Future.error(
         AjanuwImageNetworkError(
           statusCode: 0,
@@ -199,7 +201,6 @@ class AjanuwNetworkImage
       );
     } on TimeoutException catch (er) {
       // 网络超时
-      print(er);
       return Future.error(
         AjanuwImageNetworkError(
           statusCode: 0,

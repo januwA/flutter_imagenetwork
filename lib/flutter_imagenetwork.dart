@@ -7,7 +7,7 @@ export 'image_provider.dart';
 
 bool kValidateStatus(int statusCode) {
   var rcode = statusCode ~/ 100;
-  return rcode != 2 || rcode != 3;
+  return rcode == 2 || rcode == 3;
 }
 
 /// error Status
@@ -43,18 +43,23 @@ class AjanuwImageNetworkError {
 typedef AjanuwImageErrorBuilder = Widget Function(
   BuildContext context,
   AjanuwImageNetworkError error,
+  StackTrace stackTrace,
 );
 
 class AjanuwImage extends StatefulWidget {
   /// Usage:
   /// ```dart
   ///  AjanuwImage(
-  ///   image:
-  ///       AjanuwNetworkImage('https://example.com/logo.jpg'),
+  ///   image: AjanuwNetworkImage('https://example.com/logo.jpg'),
   ///   fit: BoxFit.cover,
   ///   loadingWidget: AjanuwImage.defaultLoadingWidget,
   ///   loadingBuilder: AjanuwImage.defaultLoadingBuilder,
   ///   errorBuilder: AjanuwImage.defaultErrorBuilder,
+  /// );
+  ///
+  /// AjanuwImage(
+  ///   image: AjanuwNetworkImage('https://i.loli.net/2019/10/01/CVBu2tNMqzOfXHr.png'),
+  ///   frameBuilder: AjanuwImage.defaultFrameBuilder,
   /// );
   /// ```
   const AjanuwImage({
@@ -155,7 +160,8 @@ class AjanuwImage extends StatefulWidget {
 
   /// default errorBuilder
   static final AjanuwImageErrorBuilder defaultErrorBuilder =
-      (BuildContext context, error) {
+      (BuildContext context, error, stackTrace) {
+    print('[AjanuwImageErrorBuilder] ' + error.toString());
     Color color = Theme.of(context).accentColor;
     return Padding(
       padding: const EdgeInsets.all(8.0),
@@ -223,9 +229,8 @@ class _AjanuwImageState extends State<AjanuwImage> with WidgetsBindingObserver {
   int _frameNumber;
   bool _wasSynchronouslyLoaded;
   DisposableBuildContext<State<AjanuwImage>> _scrollAwareContext;
-
-  /// add
-  AjanuwImageNetworkError _exception;
+  AjanuwImageNetworkError _lastException;
+  StackTrace _lastStack;
 
   @override
   void initState() {
@@ -263,12 +268,7 @@ class _AjanuwImageState extends State<AjanuwImage> with WidgetsBindingObserver {
     super.didUpdateWidget(oldWidget);
     if (_isListeningToStream &&
         (widget.loadingBuilder == null) != (oldWidget.loadingBuilder == null)) {
-      _imageStream.removeListener(
-        _getListener(
-          loadingBuilder: oldWidget.loadingBuilder,
-          errorBuilder: oldWidget.errorBuilder,
-        ),
-      );
+      _imageStream.removeListener(_getListener());
       _imageStream.addListener(_getListener(recreateListener: true));
     }
     if (widget.image != oldWidget.image) _resolveImage();
@@ -295,7 +295,6 @@ class _AjanuwImageState extends State<AjanuwImage> with WidgetsBindingObserver {
         SemanticsBinding.instance.accessibilityFeatures.invertColors;
   }
 
-  /// 解决图片
   void _resolveImage() {
     final ScrollAwareImageProvider provider = ScrollAwareImageProvider<dynamic>(
       context: _scrollAwareContext,
@@ -313,48 +312,35 @@ class _AjanuwImageState extends State<AjanuwImage> with WidgetsBindingObserver {
   }
 
   ImageStreamListener _imageStreamListener;
-  ImageStreamListener _getListener({
-    ImageLoadingBuilder loadingBuilder,
-    AjanuwImageErrorBuilder errorBuilder,
-    bool recreateListener = false,
-  }) {
+  ImageStreamListener _getListener({bool recreateListener = false}) {
     if (_imageStreamListener == null || recreateListener) {
-      loadingBuilder ??= widget.loadingBuilder;
-      errorBuilder ??= widget.errorBuilder;
+      _lastException = null;
+      _lastStack = null;
       _imageStreamListener = ImageStreamListener(
         _handleImageFrame,
-        onChunk: loadingBuilder == null ? null : _handleImageChunk,
-        onError: errorBuilder == null && widget.alt == null
-            ? null
-            : _handleImageError,
+        onChunk: widget.loadingBuilder == null ? null : _handleImageChunk,
+
+        /* 需要判断用户是否监听的错误，否者不对错误进行处理 */
+        onError: widget.errorBuilder != null || widget.alt != null
+            ? (dynamic error, StackTrace stackTrace) {
+                if (error is AjanuwImageNetworkError) {
+                  setState(() {
+                    _lastException = error;
+                    _lastStack = stackTrace;
+                  });
+                }
+                // print('[flutter_imagenetwork] error: ' + error.message);
+                // print('[flutter_imagenetwork] stackTrace: ' + stackTrace.toString());
+              }
+            : null,
       );
     }
     return _imageStreamListener;
   }
 
-  void _handleImageError(dynamic exception, StackTrace stackTrace) {
-    if (exception is AjanuwImageNetworkError) {
-      /// 让用户知道错误的存在
-      print(exception);
-      if (stackTrace != null) {
-        print(stackTrace);
-      }
-      if (widget.errorBuilder != null || widget.alt != null) {
-        setState(() {
-          _exception = exception;
-        });
-      }
-    }
-
-    if (stackTrace != null) {
-      print(stackTrace);
-    }
-  }
-
   void _handleImageFrame(ImageInfo imageInfo, bool synchronousCall) {
     setState(() {
       _imageInfo = imageInfo;
-      _exception = null;
       _loadingProgress = null;
       _frameNumber = _frameNumber == null ? 0 : _frameNumber + 1;
       _wasSynchronouslyLoaded |= synchronousCall;
@@ -407,10 +393,11 @@ class _AjanuwImageState extends State<AjanuwImage> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     /// 用户如果设置了errorBuilder
     /// 没有设置将不会对错误的图像作出反应
-    if (_exception != null) {
+    if (_lastException != null) {
       if (widget.errorBuilder != null) {
-        return widget.errorBuilder(context, _exception);
-      } else if (widget.alt != null) {
+        return widget.errorBuilder(context, _lastException, _lastStack);
+      }
+      if (widget.alt != null) {
         return Wrap(
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
@@ -418,9 +405,8 @@ class _AjanuwImageState extends State<AjanuwImage> with WidgetsBindingObserver {
             Text(widget.alt),
           ],
         );
-      } else {
-        return SizedBox();
       }
+      return SizedBox();
     }
 
     /// 在图像未加载，并且没有获取到进度的时候

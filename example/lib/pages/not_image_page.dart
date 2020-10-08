@@ -17,7 +17,7 @@ class _NotImagePageState extends State<NotImagePage> {
       body: Center(
         child: AjanuwImage(
           image: AjanuwNetworkImage('http://example.com'),
-          errorBuilder: (context, error) {
+          errorBuilder: (context, error, stackTrace) {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
