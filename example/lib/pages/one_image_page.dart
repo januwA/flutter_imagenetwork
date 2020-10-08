@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_imagenetwork/flutter_imagenetwork.dart';
 
-import '../global.dart';
-
 class OneImagePage extends StatefulWidget {
   static const routeName = '/OneImagePage';
   @override
@@ -25,7 +23,7 @@ class _OneImagePageState extends State<OneImagePage> {
 
         child: AjanuwImage(
           image: AjanuwNetworkImage(
-            oneImageUrl,
+            'https://i.loli.net/2019/08/29/rsjvxKEl7TiPAQt.jpg',
             timeout: const Duration(seconds: 5),
           ),
           fit: BoxFit.cover,

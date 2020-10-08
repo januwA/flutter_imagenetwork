@@ -5,6 +5,11 @@ import 'package:flutter/widgets.dart';
 
 export 'image_provider.dart';
 
+bool kValidateStatus(int statusCode) {
+  var rcode = statusCode ~/ 100;
+  return rcode != 2 || rcode != 3;
+}
+
 /// error Status
 enum AjanuwImageNetworkErrorType {
   NotImage,
@@ -56,9 +61,8 @@ class AjanuwImage extends StatefulWidget {
     Key key,
     @required this.image,
     this.frameBuilder,
-    this.errorBuilder,
     this.loadingBuilder,
-    this.loadingWidget,
+    this.errorBuilder,
     this.semanticLabel,
     this.excludeFromSemantics = false,
     this.width,
@@ -71,13 +75,16 @@ class AjanuwImage extends StatefulWidget {
     this.centerSlice,
     this.matchTextDirection = false,
     this.gaplessPlayback = false,
+    this.isAntiAlias = false,
     this.filterQuality = FilterQuality.low,
     this.alt,
+    this.loadingWidget,
   })  : assert(image != null),
         assert(alignment != null),
         assert(repeat != null),
         assert(filterQuality != null),
         assert(matchTextDirection != null),
+        assert(isAntiAlias != null),
         super(key: key);
   final ImageProvider image;
   final ImageFrameBuilder frameBuilder;
@@ -97,6 +104,7 @@ class AjanuwImage extends StatefulWidget {
   final bool gaplessPlayback;
   final String semanticLabel;
   final bool excludeFromSemantics;
+  final bool isAntiAlias;
 
   /// This text will be displayed if the image is not loaded correctly
   final String alt;
@@ -214,7 +222,7 @@ class _AjanuwImageState extends State<AjanuwImage> with WidgetsBindingObserver {
   bool _invertColors;
   int _frameNumber;
   bool _wasSynchronouslyLoaded;
-  // DisposableBuildContext<State<AjanuwImage>> _scrollAwareContext;
+  DisposableBuildContext<State<AjanuwImage>> _scrollAwareContext;
 
   /// add
   AjanuwImageNetworkError _exception;
@@ -223,7 +231,7 @@ class _AjanuwImageState extends State<AjanuwImage> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    // _scrollAwareContext = DisposableBuildContext<State<AjanuwImage>>(this);
+    _scrollAwareContext = DisposableBuildContext<State<AjanuwImage>>(this);
   }
 
   @override
@@ -231,7 +239,7 @@ class _AjanuwImageState extends State<AjanuwImage> with WidgetsBindingObserver {
     assert(_imageStream != null);
     WidgetsBinding.instance.removeObserver(this);
     _stopListeningToStream();
-    // _scrollAwareContext.dispose();
+    _scrollAwareContext.dispose();
     super.dispose();
   }
 
@@ -261,7 +269,7 @@ class _AjanuwImageState extends State<AjanuwImage> with WidgetsBindingObserver {
           errorBuilder: oldWidget.errorBuilder,
         ),
       );
-      _imageStream.addListener(_getListener());
+      _imageStream.addListener(_getListener(recreateListener: true));
     }
     if (widget.image != oldWidget.image) _resolveImage();
   }
@@ -289,19 +297,12 @@ class _AjanuwImageState extends State<AjanuwImage> with WidgetsBindingObserver {
 
   /// 解决图片
   void _resolveImage() {
-    // final ScrollAwareImageProvider provider = ScrollAwareImageProvider<dynamic>(
-    //   context: _scrollAwareContext,
-    //   imageProvider: widget.image,
-    // );
-    // final ImageStream newStream =
-    //     provider.resolve(createLocalImageConfiguration(
-    //   context,
-    //   size: widget.width != null && widget.height != null
-    //       ? Size(widget.width, widget.height)
-    //       : null,
-    // ));
+    final ScrollAwareImageProvider provider = ScrollAwareImageProvider<dynamic>(
+      context: _scrollAwareContext,
+      imageProvider: widget.image,
+    );
     final ImageStream newStream =
-        widget.image.resolve(createLocalImageConfiguration(
+        provider.resolve(createLocalImageConfiguration(
       context,
       size: widget.width != null && widget.height != null
           ? Size(widget.width, widget.height)
@@ -311,19 +312,24 @@ class _AjanuwImageState extends State<AjanuwImage> with WidgetsBindingObserver {
     _updateSourceStream(newStream);
   }
 
+  ImageStreamListener _imageStreamListener;
   ImageStreamListener _getListener({
     ImageLoadingBuilder loadingBuilder,
     AjanuwImageErrorBuilder errorBuilder,
+    bool recreateListener = false,
   }) {
-    loadingBuilder ??= widget.loadingBuilder;
-    errorBuilder ??= widget.errorBuilder;
-    // 创建一个新的[ImageStreamListener]
-    return ImageStreamListener(
-      _handleImageFrame,
-      onChunk: loadingBuilder == null ? null : _handleImageChunk,
-      onError:
-          errorBuilder == null && widget.alt == null ? null : _handleImageError,
-    );
+    if (_imageStreamListener == null || recreateListener) {
+      loadingBuilder ??= widget.loadingBuilder;
+      errorBuilder ??= widget.errorBuilder;
+      _imageStreamListener = ImageStreamListener(
+        _handleImageFrame,
+        onChunk: loadingBuilder == null ? null : _handleImageChunk,
+        onError: errorBuilder == null && widget.alt == null
+            ? null
+            : _handleImageError,
+      );
+    }
+    return _imageStreamListener;
   }
 
   void _handleImageError(dynamic exception, StackTrace stackTrace) {

@@ -20,6 +20,7 @@ class AjanuwNetworkImage
     this.scale = 1.0,
     this.headers,
     this.timeout,
+    this.validateStatus = kValidateStatus,
   })  : assert(url != null),
         assert(scale != null);
 
@@ -33,6 +34,9 @@ class AjanuwNetworkImage
   final Map<String, String> headers;
 
   final Duration timeout;
+
+  /// 默认成功状态码为 200~300
+  final bool Function(int statusCode) validateStatus;
 
   @override
   Future<AjanuwNetworkImage> obtainKey(ImageConfiguration configuration) {
@@ -102,8 +106,8 @@ class AjanuwNetworkImage
       final HttpClientResponse r =
           await request.close(); /*(这不会工作) .timeout(timeout); */
 
-      /// 是否获取成功
-      if (r.statusCode != HttpStatus.ok) {
+      /// 是否获取成功，默认返回的状态码为2xx或者3xx表示成功
+      if (validateStatus == null || !validateStatus(r.statusCode)) {
         /// 也能收到错误
         /// 程序不会进入调试状态
         return Future.error(
@@ -204,6 +208,8 @@ class AjanuwNetworkImage
           type: AjanuwImageNetworkErrorType.TimeoutException,
         ),
       );
+    } finally {
+      chunkEvents.close();
     }
   }
 

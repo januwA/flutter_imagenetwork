@@ -12,7 +12,6 @@ dependencies:
 
 ## example
 ```dart
-import 'package:flutter/material.dart';
 import 'package:flutter_imagenetwork/flutter_imagenetwork.dart'
 
 AjanuwImage(

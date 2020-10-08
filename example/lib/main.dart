@@ -3,6 +3,7 @@ import 'package:example/pages/not_found_image_page.dart';
 import 'package:example/pages/not_image_page.dart';
 import 'package:flutter/material.dart';
 import './pages/one_image_page.dart';
+import 'pages/image_page.dart';
 
 void main() => runApp(MyApp());
 
@@ -45,6 +46,10 @@ class _HomePageState extends State<HomePage> {
               RaisedButton(
                 child: Text('alt'),
                 onPressed: () => _goPage(AltPage()),
+              ),
+              RaisedButton(
+                child: Text('image page'),
+                onPressed: () => _goPage(ImagePage()),
               ),
             ],
           ),
