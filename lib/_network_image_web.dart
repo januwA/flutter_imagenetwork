@@ -87,7 +87,7 @@ class AjanuwNetworkImage
     if (other.runtimeType != runtimeType) {
       return false;
     }
-    return other is NetworkImage && other.url == url && other.scale == scale;
+    return other is AjanuwNetworkImage && other.url == url && other.scale == scale;
   }
 
   @override
